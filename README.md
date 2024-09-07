@@ -45,7 +45,7 @@ cd NixOS-AutoInstaller
 Ensure the script is executable.
 
 ```sh
-chmod +x nixos_setup.sh
+sudo chmod +x nixos_setup.sh
 ```
 
 ### 7. Run the Script
@@ -53,7 +53,7 @@ chmod +x nixos_setup.sh
 Execute the script to start the installation process.
 
 ```sh
-./nixos_setup.sh
+sudo bash ./nixos_setup.sh
 ```
 
 ### 7. Follow the On-Screen Instructions
