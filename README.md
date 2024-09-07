@@ -6,7 +6,6 @@ This guide will walk you through using the NixOS AutoInstaller script from the c
 
 1. **Minimal NixOS Installer**: Ensure you have the minimal NixOS installer booted up. You can download it from the [NixOS download page](https://nixos.org/download/).
 2. **Internet Connection**: Make sure you have an active internet connection.
-3. **Git**: The minimal installer should have `git` available. If not, you may need to install it.
 
 ## Steps
 
@@ -24,7 +23,15 @@ nmtui
 # or
 iwctl
 ```
-### 3. Clone the Repository
+### 3. Install Git
+
+Use the nix-shell command to temporarily install Git.
+
+```sh
+nix-shell -p git
+```
+
+### 4. Clone the Repository
 
 Clone the NixOS AutoInstaller repository from GitHub.
 
@@ -33,7 +40,7 @@ git clone https://github.com/OpusNano/NixOS-AutoInstaller.git
 cd NixOS-AutoInstaller
 ```
 
-### 4. Make the Script Executable
+### 6. Make the Script Executable
 
 Ensure the script is executable.
 
@@ -41,7 +48,7 @@ Ensure the script is executable.
 chmod +x nixos_setup.sh
 ```
 
-### 5. Run the Script
+### 7. Run the Script
 
 Execute the script to start the installation process.
 
@@ -49,11 +56,11 @@ Execute the script to start the installation process.
 ./nixos_setup.sh
 ```
 
-### 6. Follow the On-Screen Instructions
+### 7. Follow the On-Screen Instructions
 
 The script will guide you through the installation process. Follow the on-screen instructions to complete the installation.
 
-### 7. Reboot
+### 8. Reboot
 
 Once the installation is complete, reboot your system.
 
