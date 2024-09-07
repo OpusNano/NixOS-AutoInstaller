@@ -63,10 +63,23 @@ setup_swap() {
   echo "/swapfile none swap sw 0 0" >> /mnt/etc/fstab
 }
 
+# Function to edit the NixOS configuration file
+edit_configuration() {
+  echo "Editing the NixOS configuration file..."
+  CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
+  
+  # Uncomment the line for GRUB device
+  sed -i 's/# boot.loader.grub.device = \"\/dev\/sda\";/boot.loader.grub.device = \"\/dev\/sda\";/g' "$CONFIG_FILE"
+}
+
 # Function to build the system
 build_system() {
   echo "Building the system..."
   nixos-generate-config --root /mnt
+  
+  # Edit configuration before installing
+  edit_configuration
+  
   nixos-install
 }
 
