@@ -68,16 +68,14 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Append the necessary configuration for /boot
-  cat <<EOF >> "$CONFIG_FILE"
-{
-  fileSystems."/boot" = lib.mkForce {
-    device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";
-    fsType = "vfat";
-    options = [ "fmask=0077" "dmask=0077" "defaults" ];
-  };
-}
-EOF
+  # Read the current configuration.nix content
+  CONFIG_CONTENT=$(cat "$CONFIG_FILE")
+  
+  # Replace the existing hardware-configuration.nix import with the new configuration
+  UPDATED_CONFIG=$(echo "$CONFIG_CONTENT" | sed 's|./hardware-configuration.nix|./hardware-configuration.nix\n  fileSystems."/boot" = lib.mkForce {\n    device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";\n    fsType = "vfat";\n    options = [ "fmask=0077" "dmask=0077" "defaults" ];\n  };|')
+  
+  # Write the updated configuration back to the file
+  echo "$UPDATED_CONFIG" > "$CONFIG_FILE"
 }
 
 # Function to build the system
