@@ -68,14 +68,10 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Ensure systemd-boot is already enabled, no need to set it again
+  # Since boot.loader.systemd-boot.enable is already defined by default, we won't add or modify it
 
-  # Remove any existing definition for boot.loader.systemd-boot.randomSeedFile
-  sed -i '/boot.loader.systemd-boot.randomSeedFile/d' "$CONFIG_FILE"
-  
-  # Add configuration to change the random seed location
-  echo "Setting randomSeedFile location..."
-  echo "boot.loader.systemd-boot.randomSeedFile = \"/var/lib/systemd/boot-random-seed\";" >> "$CONFIG_FILE"
+  # No need to add the randomSeedFile, removing that section
+  echo "No additional systemd-boot configurations required."
 }
 
 # Function to build the system
