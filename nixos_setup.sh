@@ -68,13 +68,14 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Uncomment the line for GRUB device
-  sed -i 's/# boot.loader.grub.device = \"\/dev\/sda\";/boot.loader.grub.device = \"\/dev\/sda\";/g' "$CONFIG_FILE"
+  # Ensure systemd-boot is already enabled, no need to set it again
+
+  # Remove any existing definition for boot.loader.systemd-boot.randomSeedFile
+  sed -i '/boot.loader.systemd-boot.randomSeedFile/d' "$CONFIG_FILE"
   
   # Add configuration to change the random seed location
-  echo "
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.randomSeedFile = \"/var/lib/systemd/boot-random-seed\";" >> "$CONFIG_FILE"
+  echo "Setting randomSeedFile location..."
+  echo "boot.loader.systemd-boot.randomSeedFile = \"/var/lib/systemd/boot-random-seed\";" >> "$CONFIG_FILE"
 }
 
 # Function to build the system
