@@ -96,6 +96,28 @@ build_system() {
   nixos-install
 }
 
+# Function to fix /boot permissions in hardware-configuration.nix
+fix_boot_permissions() {
+  echo "Fixing /boot permissions in hardware-configuration.nix..."
+  
+  # Find the UUID of the /boot partition
+  BOOT_UUID=$(blkid -s UUID -o value "${DISK}1")
+  
+  # Edit the hardware-configuration.nix file
+  HARDWARE_CONFIG_FILE="/mnt/etc/nixos/hardware-configuration.nix"
+  
+  # Add the mount options for /boot partition
+  cat <<EOF >> "$HARDWARE_CONFIG_FILE"
+{
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/$BOOT_UUID";
+    fsType = "vfat";
+    options = [ "uid=0" "gid=0" "fmask=0077" "dmask=0077" ];
+  };
+}
+EOF
+}
+
 # Main script execution
 check_disks
 select_disk
@@ -104,5 +126,6 @@ setup_partitions
 mount_partitions
 setup_swap
 build_system
+fix_boot_permissions
 
 echo "NixOS installation complete. Please reboot."
