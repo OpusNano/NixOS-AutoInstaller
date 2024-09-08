@@ -75,7 +75,7 @@ edit_configuration() {
     description = "Set permissions on /boot and random seed file";
     after = [ "local-fs.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.coreutils}/bin/chmod 700 /boot && ${pkgs.coreutils}/bin/chmod 600 /boot/loader/.#bootctlrandom-seedd0c203a5d99690f8";
+      ExecStart = "${pkgs.coreutils}/bin/chmod 700 /boot && ${pkgs.coreutils}/bin/chmod 600 /boot/loader/random-seed";
       Type = "oneshot";
       RemainAfterExit = true;
     };
