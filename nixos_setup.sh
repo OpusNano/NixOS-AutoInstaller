@@ -49,9 +49,6 @@ mount_partitions() {
   mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
   mount "${DISK}1" /mnt/boot
-  
-  # Set correct permissions on /boot
-  chmod 700 /mnt/boot
 }
 
 # Function to create and activate swap file
@@ -71,10 +68,13 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Since boot.loader.systemd-boot.enable is already defined by default, we won't add or modify it
-
-  # No need to add the randomSeedFile, removing that section
-  echo "No additional systemd-boot configurations required."
+  # Add activation script to set permissions
+  echo 'system.activationScripts.setPermissions = {
+    text = ''
+      chmod 700 /boot
+      chmod 600 /boot/loader/.#bootctlrandom-seedd0c203a5d99690f8
+    '';
+  };' >> "$CONFIG_FILE"
 }
 
 # Function to build the system
@@ -86,9 +86,6 @@ build_system() {
   edit_configuration
   
   nixos-install
-  
-  # Set correct permissions on the random seed file
-  chmod 600 /mnt/boot/loader/.#bootctlrandom-seedd0c203a5d99690f8
 }
 
 # Main script execution
