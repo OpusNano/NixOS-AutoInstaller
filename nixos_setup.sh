@@ -22,10 +22,26 @@ select_disk() {
   fi
 }
 
+# Function to select unallocated space
+select_unallocated_space() {
+  echo "Please select the unallocated space on the disk (e.g., /dev/sda):"
+  read -rp "Enter disk name: " DISK
+  if [ ! -b "$DISK" ]; then
+    echo "Invalid disk. Please try again."
+    select_unallocated_space
+  fi
+
+  echo "Listing unallocated space on $DISK:"
+  parted "$DISK" print free
+  echo "Please enter the start and end points for the new partition (e.g., 200GB 400GB):"
+  read -rp "Enter start point: " START
+  read -rp "Enter end point: " END
+}
+
 # Function to confirm user choice
 confirm_choice() {
-  echo "You have selected $DISK for partitioning."
-  read -rp "Are you sure you want to proceed? This will erase all data on $DISK (y/N): " CONFIRM
+  echo "You have selected $DISK for partitioning from $START to $END."
+  read -rp "Are you sure you want to proceed? This will erase data in the selected space (y/N): " CONFIRM
   if [[ "$CONFIRM" != "y" ]]; then
     echo "Operation canceled."
     exit 0
@@ -34,21 +50,16 @@ confirm_choice() {
 
 # Function to setup partitions
 setup_partitions() {
-  echo "Setting up partitions on $DISK..."
-  parted "$DISK" --align optimal mklabel gpt
-  parted "$DISK" --align optimal mkpart ESP fat32 1MiB 512MiB
-  parted "$DISK" --align optimal mkpart primary ext4 512MiB 100%
-  parted "$DISK" -- set 1 boot on
-  mkfs.fat -F32 "${DISK}1"
-  mkfs.ext4 "${DISK}2"
+  echo "Setting up partitions on $DISK from $START to $END..."
+  parted "$DISK" --align optimal mkpart primary ext4 "$START" "$END"
+  mkfs.ext4 "${DISK}1"
 }
 
 # Function to mount partitions
 mount_partitions() {
   echo "Mounting partitions..."
-  mount "${DISK}2" /mnt
+  mount "${DISK}1" /mnt
   mkdir -p /mnt/boot
-  mount -o umask=0077 "${DISK}1" /mnt/boot
 }
 
 # Function to create and activate swap file
@@ -99,6 +110,7 @@ build_system() {
 # Main script execution
 check_disks
 select_disk
+select_unallocated_space
 confirm_choice
 setup_partitions
 mount_partitions
