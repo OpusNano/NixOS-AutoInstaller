@@ -68,14 +68,21 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Read the current configuration.nix content
-  CONFIG_CONTENT=$(cat "$CONFIG_FILE")
-  
-  # Replace the existing hardware-configuration.nix import with the new configuration
-  UPDATED_CONFIG=$(echo "$CONFIG_CONTENT" | sed 's|./hardware-configuration.nix|./hardware-configuration.nix\n  fileSystems."/boot" = lib.mkForce {\n    device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";\n    fsType = "vfat";\n    options = [ "fmask=0077" "dmask=0077" "defaults" ];\n  };|')
-  
-  # Write the updated configuration back to the file
-  echo "$UPDATED_CONFIG" > "$CONFIG_FILE"
+  # Append the systemd service configuration to set permissions
+  cat <<EOF >> "$CONFIG_FILE"
+{
+  systemd.services.setBootPermissions = {
+    description = "Set permissions on /boot and random seed file";
+    after = [ "local-fs.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.coreutils}/bin/chmod 700 /boot && ${pkgs.coreutils}/bin/chmod 600 /boot/loader/.#bootctlrandom-seedd0c203a5d99690f8";
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    wantedBy = [ "multi-user.target" ];
+  };
+}
+EOF
 }
 
 # Function to build the system
