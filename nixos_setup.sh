@@ -48,7 +48,7 @@ mount_partitions() {
   echo "Mounting partitions..."
   mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
-  mount "${DISK}1" /mnt/boot
+  mount -o umask=0077 "${DISK}1" /mnt/boot
 }
 
 # Function to create and activate swap file
