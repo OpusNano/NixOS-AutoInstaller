@@ -68,12 +68,15 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Add mount options for /boot partition
-  echo 'fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";
-    fsType = "vfat";
-    options = [ "fmask=0077" "dmask=0077" "defaults" ];
-  };' >> "$CONFIG_FILE"
+  # Add mount options for /boot partition with mkForce
+  echo '{
+    imports = [ ./hardware-configuration.nix ];
+    fileSystems."/boot" = lib.mkForce {
+      device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" "defaults" ];
+    };
+  }' >> "$CONFIG_FILE"
 }
 
 # Function to build the system
