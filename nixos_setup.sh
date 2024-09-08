@@ -16,7 +16,7 @@ check_disks() {
 select_disk() {
   echo "Please select the disk where you want to install NixOS (e.g., /dev/sda):"
   read -rp "Enter disk name: " DISK
-  if [ ! -b "$DISK" ]; then
+  if [ ! -b "$DISK" ];then
     echo "Invalid disk. Please try again."
     select_disk
   fi
