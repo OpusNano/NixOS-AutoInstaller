@@ -60,6 +60,9 @@ setup_swap() {
   chmod 600 /mnt/swapfile
   mkswap /mnt/swapfile
   swapon /mnt/swapfile
+  
+  # Ensure /mnt/etc exists before writing to fstab
+  mkdir -p /mnt/etc
   echo "/swapfile none swap sw 0 0" >> /mnt/etc/fstab
 }
 
@@ -96,6 +99,9 @@ EOF
 build_system() {
   echo "Building the system..."
   nixos-generate-config --root /mnt
+  
+  # Ensure /mnt/etc/nixos exists
+  mkdir -p /mnt/etc/nixos
   
   # Edit configuration before installing
   edit_configuration
