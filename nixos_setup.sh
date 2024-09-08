@@ -49,6 +49,20 @@ mount_partitions() {
   mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
   mount "${DISK}1" /mnt/boot
+  chmod 700 /mnt/boot  # Set restrictive permissions for /boot
+}
+
+# Function to secure the random seed file
+secure_random_seed() {
+  echo "Securing random seed file..."
+  RANDOM_SEED_FILE="/mnt/boot/loader/.#bootctlrandom-seed*"
+  
+  if [ -e $RANDOM_SEED_FILE ]; then
+    chmod 600 $RANDOM_SEED_FILE  # Set restrictive permissions for the random seed file
+    echo "Random seed file permissions set to 600."
+  else
+    echo "Random seed file not found. Skipping."
+  fi
 }
 
 # Function to create and activate swap file
@@ -90,6 +104,7 @@ confirm_choice
 setup_partitions
 mount_partitions
 setup_swap
+secure_random_seed  # Secure random seed after mounting
 build_system
 
 echo "NixOS installation complete. Please reboot."
