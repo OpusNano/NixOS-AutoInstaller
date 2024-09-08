@@ -71,12 +71,6 @@ edit_configuration() {
   # Add custom systemd service for fixing /boot permissions after boot
   cat <<EOF >> "$CONFIG_FILE"
 {
-  fileSystems."/boot" = {
-    fsType = "vfat";
-    device = "/dev/disk/by-uuid/$(blkid -s UUID -o value ${DISK}1)";
-    options = [ "umask=0077" ];
-  };
-  
   systemd.services.fixBootPermissions = {
     description = "Fix permissions for /boot and random-seed file";
     after = [ "local-fs.target" ];
@@ -86,23 +80,6 @@ edit_configuration() {
       RemainAfterExit = true;
     };
     wantedBy = [ "multi-user.target" ];
-  };
-}
-EOF
-}
-
-# Function to fix /boot permissions in hardware-configuration.nix
-fix_boot_permissions() {
-  echo "Fixing /boot permissions in hardware-configuration.nix..."
-  HARDWARE_CONFIG_FILE="/mnt/etc/nixos/hardware-configuration.nix"
-
-  # Add umask=0077 option for /boot in hardware-configuration.nix
-  cat <<EOF >> "$HARDWARE_CONFIG_FILE"
-{
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/$(blkid -s UUID -o value ${DISK}1)";
-    fsType = "vfat";
-    options = [ "umask=0077" ];
   };
 }
 EOF
@@ -127,6 +104,5 @@ setup_partitions
 mount_partitions
 setup_swap
 build_system
-fix_boot_permissions
 
 echo "NixOS installation complete. Please reboot."
