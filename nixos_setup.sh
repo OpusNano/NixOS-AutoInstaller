@@ -35,14 +35,12 @@ confirm_choice() {
 # Function to setup partitions
 setup_partitions() {
   echo "Setting up partitions on $DISK..."
-  parted "$DISK" -- mklabel gpt
-  parted "$DISK" -- mkpart ESP fat32 1MiB 512MiB
-  parted "$DISK" -- mkpart primary ext4 512MiB 100%
-  parted "$DISK" -- mkpart primary linux-swap 100% 100%
+  parted "$DISK" --align optimal mklabel gpt
+  parted "$DISK" --align optimal mkpart ESP fat32 1MiB 512MiB
+  parted "$DISK" --align optimal mkpart primary ext4 512MiB 100%
   parted "$DISK" -- set 1 boot on
   mkfs.fat -F32 "${DISK}1"
   mkfs.ext4 "${DISK}2"
-  mkswap "${DISK}3"
 }
 
 # Function to mount partitions
@@ -51,7 +49,6 @@ mount_partitions() {
   mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
   mount "${DISK}1" /mnt/boot
-  swapon "${DISK}3"
 }
 
 # Function to create and activate swap file
