@@ -60,9 +60,6 @@ setup_swap() {
   chmod 600 /mnt/swapfile
   mkswap /mnt/swapfile
   swapon /mnt/swapfile
-  
-  # Ensure /mnt/etc exists before writing to fstab
-  mkdir -p /mnt/etc
   echo "/swapfile none swap sw 0 0" >> /mnt/etc/fstab
 }
 
@@ -71,25 +68,41 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Set up permissions for /boot and the random-seed file
+  # Add custom systemd service for fixing /boot permissions after boot
   cat <<EOF >> "$CONFIG_FILE"
 {
   fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/$(blkid -s UUID -o value "${DISK}1")";
     fsType = "vfat";
-    options = [ "noatime" "nodiratime" "umask=0077" ];  # Properly restrict access
+    device = "/dev/disk/by-uuid/$(blkid -s UUID -o value ${DISK}1)";
+    options = [ "umask=0077" ];
   };
-
-  # Fix random-seed permissions via systemd service
+  
   systemd.services.fixBootPermissions = {
-    description = "Fix /boot and random-seed permissions";
-    wantedBy = [ "multi-user.target" ];
+    description = "Fix permissions for /boot and random-seed file";
     after = [ "local-fs.target" ];
     serviceConfig = {
       ExecStart = "${pkgs.coreutils}/bin/chmod 700 /boot && ${pkgs.coreutils}/bin/chmod 600 /boot/loader/random-seed";
       Type = "oneshot";
       RemainAfterExit = true;
     };
+    wantedBy = [ "multi-user.target" ];
+  };
+}
+EOF
+}
+
+# Function to fix /boot permissions in hardware-configuration.nix
+fix_boot_permissions() {
+  echo "Fixing /boot permissions in hardware-configuration.nix..."
+  HARDWARE_CONFIG_FILE="/mnt/etc/nixos/hardware-configuration.nix"
+
+  # Add umask=0077 option for /boot in hardware-configuration.nix
+  cat <<EOF >> "$HARDWARE_CONFIG_FILE"
+{
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/$(blkid -s UUID -o value ${DISK}1)";
+    fsType = "vfat";
+    options = [ "umask=0077" ];
   };
 }
 EOF
@@ -99,10 +112,7 @@ EOF
 build_system() {
   echo "Building the system..."
   nixos-generate-config --root /mnt
-  
-  # Ensure /mnt/etc/nixos exists
-  mkdir -p /mnt/etc/nixos
-  
+
   # Edit configuration before installing
   edit_configuration
   
@@ -117,5 +127,6 @@ setup_partitions
 mount_partitions
 setup_swap
 build_system
+fix_boot_permissions
 
 echo "NixOS installation complete. Please reboot."
