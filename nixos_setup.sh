@@ -68,16 +68,11 @@ edit_configuration() {
   echo "Editing the NixOS configuration file..."
   CONFIG_FILE="/mnt/etc/nixos/configuration.nix"
   
-  # Add systemd service to set permissions
-  echo 'systemd.services.setPermissions = {
-    description = "Set permissions on /boot and random seed file";
-    after = [ "local-fs.target" ];
-    serviceConfig = {
-      ExecStart = "${pkgs.coreutils}/bin/chmod 700 /boot && ${pkgs.coreutils}/bin/chmod 600 /boot/loader/.#bootctlrandom-seedd0c203a5d99690f8";
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    wantedBy = [ "multi-user.target" ];
+  # Add mount options for /boot partition
+  echo 'fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/YOUR_BOOT_PARTITION_UUID";
+    fsType = "vfat";
+    options = [ "fmask=0077" "dmask=0077" "defaults" ];
   };' >> "$CONFIG_FILE"
 }
 
