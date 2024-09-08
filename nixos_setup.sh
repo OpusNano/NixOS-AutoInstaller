@@ -49,6 +49,9 @@ mount_partitions() {
   mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
   mount "${DISK}1" /mnt/boot
+  
+  # Set correct permissions on /boot
+  chmod 700 /mnt/boot
 }
 
 # Function to create and activate swap file
@@ -83,6 +86,9 @@ build_system() {
   edit_configuration
   
   nixos-install
+  
+  # Set correct permissions on the random seed file
+  chmod 600 /mnt/boot/loader/.#bootctlrandom-seedd0c203a5d99690f8
 }
 
 # Main script execution
