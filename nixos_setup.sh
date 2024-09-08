@@ -36,21 +36,21 @@ confirm_choice() {
 setup_partitions() {
   echo "Setting up partitions on $DISK..."
   parted "$DISK" -- mklabel gpt
-  parted "$DISK" -- mkpart primary ext4 512MiB 100%
   parted "$DISK" -- mkpart ESP fat32 1MiB 512MiB
+  parted "$DISK" -- mkpart primary ext4 512MiB 100%
   parted "$DISK" -- mkpart primary linux-swap 100% 100%
-  parted "$DISK" -- set 2 boot on
-  mkfs.ext4 "${DISK}1"
-  mkfs.fat -F32 "${DISK}2"
+  parted "$DISK" -- set 1 boot on
+  mkfs.fat -F32 "${DISK}1"
+  mkfs.ext4 "${DISK}2"
   mkswap "${DISK}3"
 }
 
 # Function to mount partitions
 mount_partitions() {
   echo "Mounting partitions..."
-  mount "${DISK}1" /mnt
+  mount "${DISK}2" /mnt
   mkdir -p /mnt/boot
-  mount "${DISK}2" /mnt/boot
+  mount "${DISK}1" /mnt/boot
   swapon "${DISK}3"
 }
 
