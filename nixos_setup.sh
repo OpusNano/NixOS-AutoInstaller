@@ -9,38 +9,38 @@ fi
 # Function to check and list disks and partitions
 check_disks() {
   echo "Listing all disks and partitions:"
-  lsblk
+  lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 }
 
 # Function to select a disk
 select_disk() {
-  echo "Please select the disk where you want to install NixOS (e.g., /dev/sda):"
+  echo "Please select the disk where you want to install NixOS (e.g., sda):"
   read -rp "Enter disk name: " DISK
-  if [ ! -b "$DISK" ]; then
+  if [ ! -b "/dev/$DISK" ]; then
     echo "Invalid disk. Please try again."
     select_disk
   fi
 }
 
-# Function to select unallocated space
+# Function to select the largest unallocated space
 select_unallocated_space() {
-  echo "Please select the unallocated space on the disk (e.g., /dev/sda):"
-  read -rp "Enter disk name: " DISK
-  if [ ! -b "$DISK" ]; then
-    echo "Invalid disk. Please try again."
-    select_unallocated_space
+  echo "Finding the largest unallocated space on /dev/$DISK..."
+  UNALLOCATED=$(parted /dev/$DISK unit GB print free | awk '/Free Space/ {print $3, $4}' | sort -nrk 1 | head -n 1)
+  START=$(echo $UNALLOCATED | awk '{print $1}')
+  END=$(echo $UNALLOCATED | awk '{print $2}')
+  SIZE=$(echo "$END - $START" | bc)
+
+  if [ -z "$START" ] || [ -z "$END" ]; then
+    echo "No unallocated space found on /dev/$DISK."
+    exit 1
   fi
 
-  echo "Listing unallocated space on $DISK:"
-  parted "$DISK" print free
-  echo "Please enter the start and end points for the new partition (e.g., 200GB 400GB):"
-  read -rp "Enter start point: " START
-  read -rp "Enter end point: " END
+  echo "Largest unallocated space found: $SIZE GB from $START to $END."
 }
 
 # Function to confirm user choice
 confirm_choice() {
-  echo "You have selected $DISK for partitioning from $START to $END."
+  echo "You have selected /dev/$DISK for partitioning from $START to $END."
   read -rp "Are you sure you want to proceed? This will erase data in the selected space (y/N): " CONFIRM
   if [[ "$CONFIRM" != "y" ]]; then
     echo "Operation canceled."
@@ -50,15 +50,15 @@ confirm_choice() {
 
 # Function to setup partitions
 setup_partitions() {
-  echo "Setting up partitions on $DISK from $START to $END..."
-  parted "$DISK" --align optimal mkpart primary ext4 "$START" "$END"
-  mkfs.ext4 "${DISK}1"
+  echo "Setting up partitions on /dev/$DISK from $START to $END..."
+  parted /dev/$DISK --align optimal mkpart primary ext4 "$START" "$END"
+  mkfs.ext4 "/dev/${DISK}1"
 }
 
 # Function to mount partitions
 mount_partitions() {
   echo "Mounting partitions..."
-  mount "${DISK}1" /mnt
+  mount "/dev/${DISK}1" /mnt
   mkdir -p /mnt/boot
 }
 
